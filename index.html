@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>time測定</title>
+    </head>
+    <body>
+        <div id="container">
+            <div id="time">00:00</div>
+            <div id="buttons">
+                <input id="start" type="button" value="start">
+                <input id="rap" type="button" value="rap">
+                <input id="stop" type="button" value="stop">
+                <input id="reset" type="button" value="reset">
+            </div>
+          </div>
+        <div>
+            <input id="add" type="button" value="add">
+            <table id="table">
+                <thead>
+                    <th>ページ</th><th>rap</th><th>time</th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <script>
+            let nameCount=0;
+            document.getElementById("add").addEventListener('click', function(){
+                var table = document.getElementById("table");
+                var newRow = table.insertRow(); 
+                let newCell = newRow.insertCell(); 
+                newCell.innerHTML = "<input type=text>"; 
+                let rapname = "rap"+ nameCount;
+                let timename = "time"+ nameCount;
+                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+rapname+">"; 
+                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+timename+">"; 
+                nameCount++; 
+            });
+
+            const time = document.getElementById('time');
+            const startButton = document.getElementById('start');
+            const rapButton = document.getElementById('rap');
+            const stopButton = document.getElementById('stop');
+            const resetButton = document.getElementById('reset');
+
+            // 開始時間
+            let startTime;
+            // 停止時間
+            let stopTime = 0;
+            // タイムアウトID
+            let timeoutID;
+
+            startButton.disabled = false;
+            rapButton.disabled = true;
+            stopButton.disabled = true;
+            resetButton.disabled = true;
+
+            // 時間を表示する関数
+            function displayTime() {
+                const currentTime = new Date(Date.now() - startTime + stopTime);
+
+                // const h = String(currentTime.getHours()-1).padStart(2, '0');
+                const m = String(currentTime.getMinutes()).padStart(2, '0');
+                const s = String(currentTime.getSeconds()).padStart(2, '0');
+                // const ms = String(currentTime.getMilliseconds()).padStart(3, '0');
+
+                time.textContent = `${m}:${s}`;//`${h}:${m}:${s}.${ms}`;
+                timeoutID = setTimeout(displayTime, 10);
+            }
+
+            // スタートボタンがクリックされたら時間を進める
+            startButton.addEventListener('click', () => {
+                startButton.disabled = true;
+                rapButton.disabled = false;
+                stopButton.disabled = false;
+                resetButton.disabled = true;
+                startTime = Date.now();
+                rap = startTime;
+                displayTime();
+            });
+
+            let count = 0;
+            let raptime;
+            let rap;
+            let old;
+            rapButton.addEventListener('click', ()=>{
+                let temp = Date.now();
+                if(count == 0){
+                    rap = temp - rap;
+                    old = temp;
+                }else{
+                    rap = temp - old;
+                    old = temp;
+                }
+                console.log(rap);
+                
+                const rapnow = new Date(rap);
+                const m = String(rapnow.getMinutes()).padStart(2, '0');
+                const s = String(rapnow.getSeconds()).padStart(2, '0');
+                let id = "rap"+count;
+                let idtime = "time"+count;
+                document.getElementById(id).textContent = `${m}:${s}`;
+                document.getElementById(idtime).textContent = time.textContent;
+                count++;
+
+            });
+
+            // ストップボタンがクリックされたら時間を止める
+            stopButton.addEventListener('click', function() {
+                startButton.disabled = false;
+                rapButton.disabled = true;
+                stopButton.disabled = true;
+                resetButton.disabled = false;
+                clearTimeout(timeoutID);
+                stopTime += (Date.now() - startTime);
+            });
+
+            // リセットボタンがクリックされたら時間を0に戻す
+            resetButton.addEventListener('click', function() {
+                startButton.disabled = false;
+                rapButton.disabled = true;
+                stopButton.disabled = true;
+                resetButton.disabled = true;
+                time.textContent = '00:00';
+                stopTime = 0;
+                count=0;
+            });
+        </script>
+    </body>
+</html>
