@@ -3,44 +3,133 @@
     <head>
         <meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1">
         <link rel="stylesheet" href="index.css">
-        <title>time測定</title>
+        <title>パワポタイム測定</title>
     </head>
     <body>
+        <div style="text-align: center;">\ 超! パワポタイム /</div>
         <div id="container">
             <div id="time">00:00</div>
             <div id="buttons">
-                <input id="start" type="button" value="start">
-                <input id="rap" type="button" value="rap">
+                <input id="start" type="button" value="START">
+                <input id="rap" type="button" value="RAP">
                 <br>
-                <input id="reset" type="button" value="TimeReset">
+                <input id="timesReset" type="button" value="TimeReset">
             </div>
         </div>
         <br>
-        <div>
+        <div id="tableField">
             <input id="add" type="button" value="add">
             <input id="sub" type="button" value="sub">
-            <input id="TableReset" type="button" value="TableReset">
+            <input id="tableReset" type="button" value="TableReset">
             <table id="table">
                 <thead>
-                    <th>ページ</th><th>rap</th><th>time</th>
+                    <th>PAGE</th><th>RAP</th><th>TIME</th>
                 </thead>
                 <tbody>
-                    <tr><td><input type="text"></td><td><span id="rap0"></span></td><td><span id="time0"></span></td></tr>
+                    <tr><td><input type="text" id="text0"></td><td><span id="rap0"></span></td><td><span id="time0"></span></td></tr>
                 </tbody>
             </table>
         </div>
 
         <script>
+            const time = document.getElementById('time');
+            const startButton = document.getElementById('start');
+            const rapButton = document.getElementById('rap');
+            const timesResetButton = document.getElementById('timesReset');
+
+            // 開始時間
+            let startTime;
+            // 停止時間
+            let stopTime = 0;
+            // タイムアウトID
+            let timeoutID;
+
+            // start or stop
+            let judge = true;
+
+            startButton.disabled = false;
+            rapButton.disabled = true;
+            timesResetButton.disabled = true;
+
+            function displayTime() {
+                const currentTime = new Date(Date.now() - startTime + stopTime);
+                // const h = String(currentTime.getHours()-1).padStart(2, '0');
+                const m = String(currentTime.getMinutes()).padStart(2, '0');
+                const s = String(currentTime.getSeconds()).padStart(2, '0');
+                time.textContent = `${m}:${s}`;
+                timeoutID = setTimeout(displayTime, 10);
+            }
+
+            startButton.addEventListener('click', function(){
+                if(judge){
+                    rapButton.disabled = false;
+                    timesResetButton.disabled = true;
+                    startButton.value = "STOP";
+                    judge = false;
+                    startTime = Date.now();
+                    rapTime = startTime;
+                    displayTime();
+                }else{
+                    rapButton.disabled = true;
+                    timesResetButton.disabled = false;
+                    startButton.value = "START";
+                    judge = true;
+                    clearTimeout(timeoutID);
+                    stopTime += (Date.now() - startTime);
+                }
+            });
+
+            let count = 0;
+            let rapTime;
+            let preTime;
+            rapButton.addEventListener('click', function(){
+                if(count != document.getElementById("table").rows.length-1){
+                    let temp = Date.now();
+                    if(count == 0){
+                        rapTime = temp - rapTime;
+                        preTime = temp;
+                    }else{
+                        rapTime = temp - preTime;
+                        preTime = temp;
+                    }
+                    const rapTimeDate = new Date(rapTime);
+                    const m = String(rapTimeDate.getMinutes()).padStart(2, '0');
+                    const s = String(rapTimeDate.getSeconds()).padStart(2, '0');
+                    let rapID = "rap"+count;
+                    let timeID = "time"+count;
+                    document.getElementById(rapID).textContent = `${m}:${s}`;
+                    document.getElementById(timeID).textContent = time.textContent;
+                    count++;
+                }
+            });
+
+            timesResetButton.addEventListener('click', function() {
+                rapButton.disabled = true;
+                timesResetButton.disabled = true;
+                time.textContent = '00:00';
+                stopTime = 0;
+                count = 0;
+                nameCount = 1;
+                const table = document.getElementById("table");
+                const len = table.rows.length-1;
+                for(let i=0;i<len;i++){
+                    let rapID = "rap"+i;
+                    let timeID = "time"+i;
+                    document.getElementById(rapID).textContent = "";
+                    document.getElementById(timeID).textContent = "";
+                }
+            });
+
             let nameCount = 1;
             document.getElementById("add").addEventListener('click', function(){
                 var table = document.getElementById("table");
                 var newRow = table.insertRow();
                 let newCell = newRow.insertCell();
                 newCell.innerHTML = "<input type=text>";
-                let rapname = "rap"+ nameCount;
-                let timename = "time"+ nameCount;
-                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+rapname+">";
-                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+timename+">";
+                let rapName = "rap"+ nameCount;
+                let timeName = "time"+ nameCount;
+                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+rapName+">";
+                newCell = newRow.insertCell(); newCell.innerHTML = "<span id="+timeName+">";
                 nameCount++;
             });
 
@@ -53,111 +142,17 @@
                 }
             });
 
-            document.getElementById("TableReset").addEventListener('click', function(){
+            document.getElementById("tableReset").addEventListener('click', function(){
                 rapButton.disabled = true;
-                resetButton.disabled = true;
+                timesResetButton.disabled = true;
                 time.textContent = '00:00';
                 stopTime = 0;
                 count = 0;
                 nameCount = 1;
                 reset();
+                document.getElementById("text0").value = "";
                 document.getElementById("rap0").textContent = "";
                 document.getElementById("time0").textContent = "";
-            });
-
-            const time = document.getElementById('time');
-            const startButton = document.getElementById('start');
-            const rapButton = document.getElementById('rap');
-            const resetButton = document.getElementById('reset');
-
-            // 開始時間
-            let startTime;
-            // 停止時間
-            let stopTime = 0;
-            // タイムアウトID
-            let timeoutID;
-
-            startButton.disabled = false;
-            rapButton.disabled = true;
-            resetButton.disabled = true;
-
-            // 時間を表示する関数
-            function displayTime() {
-                const currentTime = new Date(Date.now() - startTime + stopTime);
-
-                // const h = String(currentTime.getHours()-1).padStart(2, '0');
-                const m = String(currentTime.getMinutes()).padStart(2, '0');
-                const s = String(currentTime.getSeconds()).padStart(2, '0');
-
-                time.textContent = `${m}:${s}`;
-                timeoutID = setTimeout(displayTime, 10);
-            }
-
-            let judge = true;
-            // スタートボタンがクリックされたら時間を進める
-            startButton.addEventListener('click', () => {
-                if(judge){
-                    rapButton.disabled = false;
-                    resetButton.disabled = true;
-                    startButton.value = "stop";
-                    judge = false;
-                    startTime = Date.now();
-                    rap = startTime;
-                    displayTime();
-                }else{
-                    rapButton.disabled = true;
-                    resetButton.disabled = false;
-                    startButton.value = "start";
-                    judge = true;
-                    clearTimeout(timeoutID);
-                    stopTime += (Date.now() - startTime);
-                }
-            });
-
-            let count = 0;
-            let raptime;
-            let rap;
-            let old;
-            rapButton.addEventListener('click', ()=>{
-                if(count != document.getElementById("table").rows.length-1){
-                    let temp = Date.now();
-                    if(count == 0){
-                        rap = temp - rap;
-                        old = temp;
-                    }else{
-                        rap = temp - old;
-                        old = temp;
-                    }
-                    const rapnow = new Date(rap);
-                    const m = String(rapnow.getMinutes()).padStart(2, '0');
-                    const s = String(rapnow.getSeconds()).padStart(2, '0');
-                    let id = "rap"+count;
-                    let idtime = "time"+count;
-                    console.log(id);
-                    document.getElementById(id).textContent = `${m}:${s}`;
-                    document.getElementById(idtime).textContent = time.textContent;
-                    count++;
-                }
-
-            });
-
-            // リセットボタンがクリックされたら時間を0に戻す
-            resetButton.addEventListener('click', function() {
-                rapButton.disabled = true;
-                resetButton.disabled = true;
-                time.textContent = '00:00';
-                stopTime = 0;
-                count = 0;
-                nameCount = 1;
-                const table = document.getElementById("table");
-                const len = table.rows.length-1;
-                for(let i=0;i<len;i++){
-                    let id = "rap"+i;
-                    let idtime = "time"+i;
-                    document.getElementById(id).textContent = "";
-                    document.getElementById(idtime).textContent = "";
-                }
-                
             });
 
             function reset(){
@@ -167,6 +162,7 @@
                     table.tBodies[0].deleteRow(-1);
                 }
             }
+
         </script>
     </body>
 </html>
